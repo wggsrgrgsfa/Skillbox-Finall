@@ -8,9 +8,10 @@ import searchengine.repository.LemmaRepository;
 import searchengine.repository.IndexRepository;
 import searchengine.utils.LemmaProcessor;
 import searchengine.model.Page;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import searchengine.config.ConfigSite ;
 import searchengine.config.SitesList ;
-import java.util.regex.Pattern;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Comparator;
@@ -86,9 +87,7 @@ public class SearchServiceImpl implements SearchService {
             URI pageUri = new URI(pageUrl);
             String pageHost = pageUri.getHost();
 
-
             if (pageHost == null) {
-
                 pageUrl = resolveFullUrl("https://default-site.com", pageUrl);
                 pageUri = new URI(pageUrl);
                 pageHost = pageUri.getHost();
@@ -112,7 +111,8 @@ public class SearchServiceImpl implements SearchService {
     private boolean hasLemmasMatches(Page page, List<String> lemmas) {
         String content = page.getContent().toLowerCase();
         for (String lemma : lemmas) {
-            if (!content.contains(lemma.toLowerCase())) {
+            String pattern = "\\b" + Pattern.quote(lemma.toLowerCase()) + "\\b"; // Ограничиваем поиск границами слов
+            if (!content.matches(".*" + pattern + ".*")) {
                 return false;
             }
         }
@@ -125,11 +125,10 @@ public class SearchServiceImpl implements SearchService {
 
         List<Integer> lemmaPositions = new ArrayList<>();
         for (String lemma : lemmas) {
-            String lowerLemma = lemma.toLowerCase();
-            int index = 0;
-            while ((index = lowerContent.indexOf(lowerLemma, index)) != -1) {
-                lemmaPositions.add(index);
-                index += lowerLemma.length();
+            String pattern = "\\b" + Pattern.quote(lemma.toLowerCase()) + "\\b"; // Используем границы слова
+            Matcher matcher = Pattern.compile(pattern).matcher(lowerContent);
+            while (matcher.find()) {
+                lemmaPositions.add(matcher.start());
             }
         }
 
@@ -143,7 +142,7 @@ public class SearchServiceImpl implements SearchService {
         String snippet = content.substring(start, end);
 
         for (String lemma : lemmas) {
-            String pattern = Pattern.quote(lemma);
+            String pattern = "\\b" + Pattern.quote(lemma) + "\\b"; // Экранируем лемму и ищем полные слова
             snippet = snippet.replaceAll("(?i)" + pattern, "<b>$0</b>");
         }
 

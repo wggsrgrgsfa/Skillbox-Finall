@@ -125,7 +125,7 @@ public class PageIndexingService {
                 return;
             }
 
-            int delay = (int) (500 + Math.random() * 4500);
+            int delay = (int) (500 + Math.random() * 1500);
             Thread.sleep(delay);
 
             org.jsoup.Connection.Response response = Jsoup.connect(url)

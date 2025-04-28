@@ -83,7 +83,7 @@ public class PageCrawler extends RecursiveAction {
                 return;
             }
 
-            long delay = 500 + new Random().nextInt(4500);
+            long delay = 500 + new Random().nextInt(1500);
             logger.debug("Задержка перед запросом: {} ms для URL: {}", delay, url);
             Thread.sleep(delay);
 
@@ -132,7 +132,7 @@ public class PageCrawler extends RecursiveAction {
             return;
         }
 
-      else if (contentType != null && contentType.contains("text/html")) {
+        else if (contentType != null && contentType.contains("text/html")) {
             Document document = response.parse();
             String text = extractText(document);
             Map<String, Integer> lemmaFrequencies = lemmatizeText(text);

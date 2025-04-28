@@ -9,12 +9,14 @@ import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.services.IndexingService;
 import searchengine.services.StatisticsService;
 import searchengine.config.SitesList ;
+import searchengine.config.ConfigSite;
 import searchengine.dto.search.SearchResponse;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.web.bind.annotation.PostMapping;
 import searchengine.services.PageIndexingService;
@@ -111,6 +113,17 @@ public class ApiController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
+        Optional<ConfigSite> optionalConfigSite = sitesList.getSites().stream()
+                .filter(configSite -> url.startsWith(configSite.getUrl()))
+                .findFirst();
+
+        if (optionalConfigSite.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("result", false);
+            response.put("error", "Сайт с таким URL не найден в конфигурации: " + url);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
         indexingInProgress = true;
 
         try {
@@ -136,6 +149,7 @@ public class ApiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
     @GetMapping("/search")
     public ResponseEntity<SearchResponse> search(
